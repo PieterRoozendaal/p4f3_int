@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(Vision_software)
+
+## Find catkin macros and libraries
+find_package(catkin REQUIRED COMPONENTS
+  rospy
+  std_msgs
+  message_generation
+)
+
+## Add message files
+add_message_files(
+  FILES
+  BoundingBoxAngle.msg
+)
+
+## Generate added messages and services
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+## Declare a catkin package
+catkin_package(
+  CATKIN_DEPENDS message_runtime std_msgs
+)
+
+## Specify additional locations of header files
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
+
+## Install Python scripts
+catkin_install_python(PROGRAMS
+  scripts/detection_publisher_node.py  # Adjust path as per your package structure
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
