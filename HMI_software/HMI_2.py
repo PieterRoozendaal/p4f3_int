@@ -32,7 +32,7 @@ class HMIApp:
         self.stop_button = tk.Button(self.left_frame, text="Stop", command=self.stop_process, font=("Helvetica", 12), state="disabled")
         self.stop_button.pack(pady=5)
 
-        self.reset_button = tk.Button(self.left_frame, text="Reset", command=self.reset_process, font=("Helvetica", 12))
+        self.reset_button = tk.Button(self.left_frame, text="Reset", command=self.reset_process, font=("Helvetica", 12), state="disabled")
         self.reset_button.pack(pady=5)
 
         self.emergency_button = tk.Button(self.left_frame, text="Noodstop", command=self.emergency_stop, font=("Helvetica", 12), fg="red")
