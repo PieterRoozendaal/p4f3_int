@@ -1,3 +1,8 @@
+"""
+Auteur: Pieter Roozendaal
+Studentnumber: 2151778
+Description: Angle calculation Vision
+"""
 #!/usr/bin/env python
 
 import rospy
