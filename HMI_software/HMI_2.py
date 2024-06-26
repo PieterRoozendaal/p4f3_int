@@ -144,7 +144,7 @@ class HMIApp:
             self.nood_publisher.publish(True)  # Publish stop signal
             # Publish stop message as a ROS message
             nood_msg = Bool()
-            nood_msg.data = True
+            nood_msg.data = False
             self.signal_publisher.publish(nood_msg)
             # Start blinking lights
             self.blink_lights()
