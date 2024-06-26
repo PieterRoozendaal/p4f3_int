@@ -42,6 +42,7 @@ class HMIApp:
         self.middle_frame = tk.Frame(self.main_frame)
         self.middle_frame.grid(row=0, column=1, padx=10)
 
+        
         self.slider_label = tk.Label(self.middle_frame, text="Select Option", font=("Helvetica", 14))
         self.slider_label.pack(pady=10)
 
