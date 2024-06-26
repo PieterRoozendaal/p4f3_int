@@ -1,15 +1,23 @@
-import tkinter as tk
-import rospy
-from std_msgs.msg import Int32, Bool
-from geometry_msgs.msg import Point  # Assuming the coordinates are published as geometry_msgs/Point
-from std_msgs.msg import Float32MultiArray
+"""
+Auteur: Pieter Roozendaal
+Studentnumber: 2151778
+Description: Human interface script 
+"""
+
+#imports
+import tkinter as tk # Python's standard library for creating GUI applications. 
+import rospy # importing ROS library for python 
+from std_msgs.msg import Int32, Bool # Standard ROS message types for integer and boolean messages.
+from geometry_msgs.msg import Point  # is used for possibly importing robot coordinates on interface  
+from std_msgs.msg import Float32MultiArray # usefull when sending arrays
 
 class HMIApp:
     def __init__(self, root):
+        # Initializes the application with a Tkinter root window titled "Human Machine Interface".
         self.root = root
         self.root.title("Human Machine Interface")
 
-        # Create a frame for the entire layout
+        # Create a frame for the entire layouta
         self.main_frame = tk.Frame(root)
         self.main_frame.pack(pady=10)
 
@@ -17,6 +25,7 @@ class HMIApp:
         self.left_frame = tk.Frame(self.main_frame)
         self.left_frame.grid(row=0, column=0, padx=10)
 
+        # Each button is linked to a command method that will handle the respective action. 
         self.start_button = tk.Button(self.left_frame, text="Start", command=self.start_process, font=("Helvetica", 12))
         self.start_button.pack(pady=5)
 
