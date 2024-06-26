@@ -1,4 +1,0 @@
-<launch>
-	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_niryo_robot)/rviz/my_niryo_robot.rviz" output="screen"/>
-	<node name="compute_cp" pkg="my_niryo_robot" type="compute_cp.py" output="screen"/>
-</launch>
