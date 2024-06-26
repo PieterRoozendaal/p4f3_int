@@ -158,7 +158,7 @@ class HMIApp:
             # Button config
             self.start_button.config(state="normal")
             self.stop_button.config(state="disabled")
-            self.emergency_button.config(state="disabled")
+            self.emergency_button.config(state="normal")
             self.reset_button.config(state="disabled")
             self.nood_publisher.publish(False)  # Publish stop signal
             # Reset lights
