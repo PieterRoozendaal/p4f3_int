@@ -161,10 +161,6 @@ class HMIApp:
             self.emergency_button.config(state="disabled")
             self.reset_button.config(state="disabled")
             self.nood_publisher.publish(False)  # Publish stop signal
-            # Publish stop message as a ROS message
-            nood_msg = Bool()
-            nood_msg.data = False 
-            self.signal_publisher.publish(nood_msg)
             # Reset lights
             self.light1.config(text="O", fg="grey")
             self.light2.config(text="O", fg="orange")
