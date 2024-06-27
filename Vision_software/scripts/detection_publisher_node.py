@@ -4,119 +4,157 @@ Studentnumber: 2151778
 Description: Angle calculation Vision
 """
 #!/usr/bin/env python
+from __future__ import print_function
 
+import roslib
+import sys
 import rospy
-from sensor_msgs.msg import Image
-from depthai_ros_msgs.msg import SpatialDetectionArray
-from cv_bridge import CvBridge
 import cv2
 import numpy as np
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
+import sensor_msgs.point_cloud2 as pc2
+from depthai_ros_msgs.msg import SpatialDetectionArray
+import random
+import json
+from visualization_msgs.msg import Marker
 
-class ObjectAngleDetector:
-    def __init__(self):
-        # Initialize the ROS node
-        rospy.init_node('object_angle_detector', anonymous=True)
+from geometry_msgs.msg import Point
+from std_msgs.msg import ColorRGBA, String
 
-        # Create a CvBridge object
-        self.bridge = CvBridge()
+from tf2_ros import TransformBroadcaster
+from geometry_msgs.msg import TransformStamped
 
-        # Subscribe to the image and bounding box topics
-        rospy.Subscriber('/stereo_inertial_nn_publisher/color/image', Image, self.image_callback)
-        rospy.Subscriber('/stereo_inertial_nn_publisher/color/detections', SpatialDetectionArray, self.detection_callback)
 
-        self.latest_image = None
-        self.detections = []
+class Publisch_TF:
 
-    def image_callback(self, msg):
-        # Convert the ROS Image message to an OpenCV image
-        self.latest_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
 
-    def detection_callback(self, msg):
-        # Store the latest detections
-        self.detections = msg.detections
+    def __init__(self, config_file):
+        rospy.loginfo(config_file)
+        self.display_image = False
 
-    def process_detections(self):
-        if self.latest_image is None or not self.detections:
-            return
 
-        for detection in self.detections:
-            bbox = detection.bbox
-            x_min = int(bbox.center.x - bbox.size_x / 2)
-            y_min = int(bbox.center.y - bbox.size_y / 2)
-            x_max = int(bbox.center.x + bbox.size_x / 2)
-            y_max = int(bbox.center.y + bbox.size_y / 2)
+        self.colors = []
+        colors = []
+        with open(config_file, 'r') as f:
+            self.model_objects = json.loads(f.read())
+            try:
+                self.class_names = self.model_objects["class_names"]
+                colors = self.model_objects["colors"]
+                for color in colors:
+                    self.colors.append(colors[color])
+            except:
+                self.class_names = self.model_objects["mappings"]["labels"]
+                for class_name in self.class_names:
+                    self.colors.append("#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]))
 
-            # Ensure the bounding box is within the image dimensions
-            x_min = max(0, x_min)
-            y_min = max(0, y_min)
-            x_max = min(self.latest_image.shape[1], x_max)
-            y_max = min(self.latest_image.shape[0], y_max)
+        #rospy.loginfo(self.class_names)
+        #rospy.loginfo(self.colors)
+        
+        #self.print(labels[0])
+        self.class_names_dict = {}
+        for label in self.class_names:
+            self.class_names_dict[label] = 0
 
-            # Crop the region from the image
-            cropped_image = self.latest_image[y_min:y_max, x_min:x_max]
+        #print(self.class_names_dict)
 
-            # Calculate the angle of the object in the cropped region
-            angle, annotated_image = self.calculate_angle(cropped_image)
+        self.detections_sub = rospy.Subscriber("/detections", SpatialDetectionArray, self.spatial_dections_callback)
 
-            # Log the angle
-            rospy.loginfo("Detected angle: {:.2f} degrees".format(angle))
+        self.detections_sub  # prevent unused variable warning
 
-            # Display the annotated cropped image
-            cv2.imshow('Annotated Cropped Image', annotated_image)
-            cv2.waitKey(1)
+        # Initialize the transform broadcaster
+        self.tf_broadcaster = TransformBroadcaster()
+        self.pubTextMarker = rospy.Publisher("color/ObjectText", Marker, queue_size = 10)
 
-    def calculate_angle(self, image):
-        # Convert the image to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    def spatial_dections_callback(self, spatial_detection_array_msg):
+        #rospy.loginfo("detections Callback")
+     
+        for label in self.class_names:
+            self.class_names_dict[label] = 0
+        for detection in spatial_detection_array_msg.detections:
+            detectionID = None
+            score = -1.0
+            label = None
+            for result in detection.results:
+                if result.score > score:
+                    detectionID = result.id
+                    score = result.score
 
-        # Use edge detection (Canny, for example)
-        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+            position = detection.position
+            #label = f'{self.class_names[int(detectionID)]}, x: {round(position.x,3)}, y: {round(position.y,3)}, z: {round(position.z,3)}'
+            #print(label)
 
-        # Detect lines in the image using Hough Transform
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, 100)
+            t = TransformStamped()
 
-        annotated_image = image.copy()
+            child_frame_id = self.class_names[int(detectionID)] + "_" + str(self.class_names_dict[self.class_names[int(detectionID)]])
+            self.class_names_dict[self.class_names[int(detectionID)]] = self.class_names_dict[self.class_names[int(detectionID)]] + 1
 
-        if lines is not None:
-            # Get the first line (rho, theta)
-            rho, theta = lines[0][0]
+            # Read message content and assign it to
+            # corresponding tf variables
+            t.header.stamp = rospy.Time.now()
+            t.header.frame_id = 'oak_rgb_camera_optical_frame' 
+            t.child_frame_id = child_frame_id#self.class_names[int(detectionID)]
 
-            # Calculate the angle in degrees
-            angle = theta * 180 / np.pi
+            # Turtle only exists in 2D, thus we get x and y translation
+            # coordinates from the message and set the z coordinate to 0
+            t.transform.translation.x = position.x
+            t.transform.translation.y = -position.y
+            t.transform.translation.z = position.z
 
-            # Draw the detected line on the image
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            x1 = int(x0 + 1000 * (-b))
-            y1 = int(y0 + 1000 * (a))
-            x2 = int(x0 - 1000 * (-b))
-            y2 = int(y0 - 1000 * (a))
+            # For the same reason, turtle can only rotate around one axis
+            # and this why we set rotation in x and y to 0 and obtain
+            # rotation in z axis from the message
+            t.transform.rotation.x = 0.0
+            t.transform.rotation.y = 0.0
+            t.transform.rotation.z = 0.0
+            t.transform.rotation.w = 1.0
 
-            cv2.line(annotated_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            # Send the transformation
+            self.tf_broadcaster.sendTransform(t)
 
-            # Annotate the image with the angle
-            cv2.putText(annotated_image, "Angle: {:.2f} degrees".format(angle), (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            text_marker = Marker()  # Text
+            text_marker.header.stamp = rospy.Time.now()
+            text_marker.header.frame_id = child_frame_id
+            text_marker.type = Marker.CYLINDER
 
-            return angle, annotated_image
-        else:
-            # No lines found
-            cv2.putText(annotated_image, "No lines detected", (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
-            return 0, annotated_image
+            text_marker.pose.position.y = 0.00
+            text_marker.pose.position.x = 0.00
+            text_marker.pose.position.z = 0.00
 
-    def run(self):
-        # Keep the node running
-        rate = rospy.Rate(10)  # 10 Hz
-        while not rospy.is_shutdown():
-            self.process_detections()
-            rate.sleep()
+            text_marker.pose.orientation.x = 0.7068252
+            text_marker.pose.orientation.y = 0.0
+            text_marker.pose.orientation.z = 0.0
+            text_marker.pose.orientation.w = 0.7073883
 
-        # Close OpenCV windows on shutdown
-        cv2.destroyAllWindows()
+            text_marker.scale.x = 0.01
+            text_marker.scale.y = 0.01
+            text_marker.scale.z = 0.1
 
+            text_marker.color.r = 0.5
+            text_marker.color.g = 0
+            text_marker.color.b = 0.5
+            text_marker.color.a = 0.8
+            #text_marker.text = child_frame_id
+            text_marker.lifetime = rospy.Duration(10.0)
+            self.pubTextMarker.publish(text_marker)   
+
+
+def main(args):
+
+    rospy.init_node('publisch_tf', anonymous=True)
+
+    node_name = rospy.get_name()
+
+    nnConfig = rospy.get_param(node_name + '/nnConfig') # node_name/argsname
+    resourceBaseFolder = rospy.get_param(node_name + '/resourceBaseFolder') # node_name/argsname
+
+    publisch_tf = Publisch_TF(resourceBaseFolder + '/'+ nnConfig)
+    try:
+        rospy.spin()
+    except KeyboardInterrupt:
+        print("Shutting down")
+        #cv2.destroyAllWindows()
+        
 if __name__ == '__main__':
-    detector = ObjectAngleDetector()
-    detector.run()
+    main(sys.argv)
