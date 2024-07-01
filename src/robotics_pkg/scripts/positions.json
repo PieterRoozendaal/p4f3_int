@@ -1,0 +1,121 @@
+{
+    "bin_1": {
+        "position": [
+            0.025, 
+            -0.2, 
+            0.11
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            0.0, 
+            90.0, 
+            -90.0
+        ]
+    }, 
+    "pickup": {
+        "position": [
+            0.3, 
+            0.2, 
+            0.006
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            0.0, 
+            90, 
+            -45
+        ]
+    }, 
+    "bin_4": {
+        "position": [
+            0.025, 
+            -0.325, 
+            0.18
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            0.0, 
+            90.0, 
+            -90.0
+        ]
+    }, 
+    "bin_3": {
+        "position": [
+            0.14, 
+            -0.325, 
+            0.18
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            0.0, 
+            90.0, 
+            -90.0
+        ]
+    }, 
+    "bin_2": {
+        "position": [
+            0.14, 
+            -0.2, 
+            0.11
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            0.0, 
+            90.0, 
+            -90.0
+        ]
+    }, 
+    "pickup_above": {
+        "position": [
+            0.2, 
+            0.3, 
+            0.165
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            0.0, 
+            90, 
+            0.0
+        ]
+    }, 
+    "home": {
+        "position": [
+            0.15, 
+            0.0, 
+            0.35
+        ], 
+        "position_offset": [
+            0.0, 
+            0.0, 
+            0.11
+        ], 
+        "orientation_rpy": [
+            90, 
+            0.0, 
+            0.0
+        ]
+    }
+}
