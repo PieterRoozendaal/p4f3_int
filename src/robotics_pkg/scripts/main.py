@@ -1,34 +1,24 @@
-#!/usr/bin/env python
-
-"""
-Auteur: Jurre Fikkers
-Studentnumber: 2196902
-Description: Main control script for robot operation
-"""
-
 import rospy
-import json
-import sys
-import tf
-import math
-from geometry_msgs.msg import Pose
-from std_msgs.msg import String, Bool, Int32
+from std_msgs.msg import String, Bool
 from niryo_robot_python_ros_wrapper import NiryoRosWrapper
 from robot_controller import MoveitRobotController
+from robotics_pkg.srv import lokalisatie, GetAngle
+import math
 
 number_of_bins = 4
-error_message = "error"
 object_list = ["", "obj1", "obj2", "obj3", "obj4"]
 hmi_signal = False
 emergency_signal = False
 sorting_bin = -1
 
 pickup_offsets = {
-    "obj1": [0.0, 0.0, 0.05],  
-    "obj2": [0.0, 0.0, 0.05],
-    "obj3": [0.0, 0.0, 0.05],  
-    "obj4": [0.0, 0.0, 0.05]  
+    "obj1": [0.1, 0.0, 0.05],  
+    "obj2": [0.2, 0.0, 0.05],
+    "obj3": [0.3, 0.0, 0.05],  
+    "obj4": [0.4, 0.0, 0.05]  
 }
+
+camera_offset = [0.1, 0.0]  # Adjust the camera offset as per your specific setup
 
 class Main:
     def __init__(self, test_mode=False):
@@ -38,7 +28,6 @@ class Main:
         
         self.read_program_start = rospy.Subscriber('/hmi_signal', Bool, self.hmi_signal_callback)
         self.read_emergency_stop = rospy.Subscriber('/emergency_signal', Bool, self.emergency_signal_callback)
-        self.read_inspection_results = rospy.Subscriber('/robot_sort_pose', String, self.inspection_result_callback)
         
         self.write_robot_state = rospy.Publisher('/robot_status', String, queue_size=1)
         
@@ -52,6 +41,7 @@ class Main:
         if test_mode:
             self.run_test_mode()
         else:
+            self.inspection_result_callback()
             self.main()
 
     def run_test_mode(self):
@@ -132,49 +122,102 @@ class Main:
     def inspection_result_callback(self, data):
         global sorting_bin
         rospy.loginfo("Received inspection result: %s", data.data)
-        sorting_bin = int(data.data)
+
+        try:
+            rospy.wait_for_service('lokalisatie')
+            loc_client = rospy.ServiceProxy('lokalisatie', lokalisatie)
+            resp = loc_client()
+            Xw = resp.Xw
+            Yw = resp.Yw
+            ObjectW = resp.Naam
+            rospy.loginfo("Received Xw: %s, Yw: %s, ObjectW: %s", Xw, Yw, ObjectW)
+
+            rospy.wait_for_service('GetAngle')
+            angle_client = rospy.ServiceProxy('GetAngle', GetAngle)
+            resp = angle_client()
+            angle = resp.angle
+            rospy.loginfo("Received angle: %s", angle)
+
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed: %s", e)
+
+        if ObjectW == "a":
+            sorting_bin = 1
+            ObjectW = "obj1"
+        elif ObjectW = "b":
+            sorting_bin = 2
+            ObjectW = "obj2"
+        elif ObjectW = "c":
+            sorting_bin = 3
+            ObjectW = "obj3"
+        elif ObjectW = "d":
+            sorting_bin = 4
+            ObjectW = "obj4"
+        else:
+            sortin_bin = -1
+            print("object_type not found")
+
+        if ObjectW in pickup_offsets:
+            offset = pickup_offsets["obj{}".format(sorting_bin)]
+            x_pickup = Xw + offset[0] * math.cos(angle) - offset[1] * math.sin(angle) + camera_offset[0]
+            y_pickup = Yw + offset[0] * math.sin(angle) + offset[1] * math.cos(angle) + camera_offset[1]
+            z_pickup = 0.12
+            yaw_pickup = angle
+
+            self.robot_controller.update_position('pickup', [x_pickup, y_pickup, z_pickup], [0.0, 0.0, yaw_pickup])
+            rospy.loginfo("Updated position pickup to: %s with orientation: %s", [x_pickup, y_pickup, z_pickup], [0.0, 0.0, yaw_pickup])
+            sorting_bin = object_list.index(ObjectW)
+        else:
+            rospy.logwarn("Object type '%s' not recognized or missing in pickup_offsets.", ObjectW)
+            sorting_bin = -1
 
     def update_pickup_above(self, object_type):
+        global sorting_bin
+        if sorting_bin == -1:
+            rospy.logwarn("No valid sorting bin assigned.")
+            return
+        
+        # Update pickup_above position based on object_type and pickup_offsets
         pickup_position = self.robot_controller.positions['pickup']
 
         x = pickup_position['position'][0]
         y = pickup_position['position'][1]
         z = pickup_position['position'][2]
-        roll_pickup = pickup_position['orientation_rpy'][0]
-        pitch_pickup = pickup_position['orientation_rpy'][1]
-        yaw_pickup = pickup_position['orientation_rpy'][2]
+        roll_pickup_above = pickup_position['orientation_rpy'][0]
+        pitch_pickup_above = pickup_position['orientation_rpy'][1]
+        yaw_pickup_above = pickup_position['orientation_rpy'][2]
 
         offset = pickup_offsets[object_type]
-        x_pickup = x + offset[0]
-        y_pickup = y + offset[1]
-        z_pickup = z + offset[2]
+        x_pickup_above = x + offset[0]
+        y_pickup_above = y + offset[1]
+        z_pickup_above = z + offset[2]
 
-        self.robot_controller.update_position('pickup_above', [x_pickup, y_pickup, z_pickup], [roll_pickup, pitch_pickup, yaw_pickup])
-        print("Updated position pickup_above to: {} with orientation: {}".format([x_pickup, y_pickup, z_pickup], [roll_pickup, pitch_pickup, yaw_pickup]))
+        self.robot_controller.update_position('pickup_above', [x_pickup_above, y_pickup_above, z_pickup_above], [roll_pickup_above, pitch_pickup_above, yaw_pickup_above])
+        rospy.loginfo("Updated position pickup_above to: %s with orientation: %s", [x_pickup_above, y_pickup_above, z_pickup_above], [roll_pickup_above, pitch_pickup_above, yaw_pickup_above])
         rospy.sleep(2.0)
     
     def pickup(self, object_type):
         self.robot_controller.go_to_named_position('pickup_above')
-        print("Moved to 'pickup_above' position")
+        rospy.loginfo("Moved to 'pickup_above' position")
         self.gripper_controller.open_gripper()
         rospy.sleep(1.0)
 
         self.robot_controller.go_to_named_position('pickup')
-        print("Moved to 'pickup' position")
+        rospy.loginfo("Moved to 'pickup' position")
         rospy.sleep(0.5)
         self.gripper_controller.close_gripper()
-        print("Grabbed object")
+        rospy.loginfo("Grabbed object")
         rospy.sleep(1.0)
         self.robot_controller.go_to_named_position('pickup_above')
-        print("Moved to 'pickup_above' position")
+        rospy.loginfo("Moved to 'pickup_above' position")
 
     def sort(self, sorting_bin):
-        position_name = ('bin_{}'.format(sorting_bin))
+        position_name = 'bin_{}'.format(sorting_bin)
         self.robot_controller.go_to_named_position(position_name)
-        print("Moved to bin_{}".format(sorting_bin))
+        rospy.loginfo("Moved to bin_%d", sorting_bin)
         rospy.sleep(1.0)
         self.gripper_controller.open_gripper()
-        print("Released object")
+        rospy.loginfo("Released object")
         rospy.sleep(1.0)
 
     def ros_shutdown(self):
