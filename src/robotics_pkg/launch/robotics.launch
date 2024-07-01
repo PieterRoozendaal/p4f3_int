@@ -2,21 +2,21 @@
 <launch>
 
    #starten roscore
-   <node pkg="roscpp" type="roscpp"  name="roscore" />
+   <node name="roscore" pkg="ros" type="core"  output="screen" />
 
    #HMI GUI
-   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py"/>
+   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" />
 
    #vision camera
     <include file="$(find my_depthai)/launch/nn_detector.launch">
-      <arg name="parent_frame"    value="camera_link"/>
+      <arg name="parent_frame"    value="camera_link" />
     </include>
   
   
    #vision manipulatie 
-   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py"/>
-   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py"/>
+   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" />
+   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" />
 
    #manipulator 
-   <node name="main" pkg="robotics_pkg" type="main.py"
+   <node name="main" pkg="robotics_pkg" type="main.py" />
 </launch>
