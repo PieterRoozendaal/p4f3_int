@@ -1,22 +1,20 @@
 <?xml version="1.0"?>
 <launch>
 
-   <!-- Start roscore in a new terminal -->
-   <node pkg="roslaunch" type="roslaunch" name="roscore" output="screen" args="--core" launch-prefix="gnome-terminal --tab -- "/>
-
    <!-- HMI GUI -->
-   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" launch-prefix="gnome-terminal --tab -- bash -c " />
+   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg HMI_2.py; exec bash'" />
 
    <!-- Vision camera -->
    <include file="$(find my_depthai)/launch/nn_detector.launch">
       <arg name="parent_frame" value="camera_link" />
+      <arg name="launch-prefix" value="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh'" />
    </include>
 
    <!-- Vision manipulatie -->
-   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" launch-prefix="gnome-terminal --tab -- bash -c " />
-   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" launch-prefix="gnome-terminal --tab -- bash -c " />
+   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg transformatie_vision.py; exec bash'" />
+   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg opencv_vision.py; exec bash'" />
 
    <!-- Manipulator -->
-   <node name="main" pkg="robotics_pkg" type="main.py" launch-prefix="gnome-terminal --tab -- bash -c " />
+   <node name="main" pkg="robotics_pkg" type="main.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg main.py; exec bash'" />
 
 </launch>
