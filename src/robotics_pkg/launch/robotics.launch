@@ -1,17 +1,23 @@
 <?xml version="1.0"?>
 <launch>
 
-   <!-- HMI GUI -->
-   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg HMI_2.py; exec bash'" />
+   #starten roscore
+   <node name="roscore" pkg="ros" type="core"  output="screen" />
 
-   <!-- Vision camera -->
-   <include file="$(find my_depthai)/launch/nn_detector.launch" />
+   #HMI GUI
+   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" />
 
-   <!-- Vision manipulatie -->
-   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg transformatie_vision.py; exec bash'" />
-   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg opencv_vision.py; exec bash'" />
+   #vision camera
+    <include file="$(find my_depthai)/launch/nn_detector.launch">
+      <arg name="parent_frame"    value="camera_link" />
+    </include>
+  
+  
+   #vision manipulatie 
+   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" />
+   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" />
 
-   <!-- Manipulator -->
-   <node name="main" pkg="robotics_pkg" type="main.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg main.py; exec bash'" />
-
+   #manipulator
+   <include file="$(find my_niryo_ned2_moveit_config)/launch/move_group.launch" />
+   <node name="main" pkg="robotics_pkg" type="main.py" />
 </launch>
