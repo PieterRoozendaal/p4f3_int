@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-   #starten roscore
-   <node name="roscore" pkg="ros" type="core"  output="screen" />
-
    #HMI GUI
    <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" />
 
