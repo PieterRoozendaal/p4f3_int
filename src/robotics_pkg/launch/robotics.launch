@@ -5,10 +5,7 @@
    <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg HMI_2.py; exec bash'" />
 
    <!-- Vision camera -->
-   <include file="$(find my_depthai)/launch/nn_detector.launch">
-      <arg name="parent_frame" value="camera_link" />
-      <arg name="launch-prefix" value="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh'" />
-   </include>
+   <include file="$(find my_depthai)/launch/nn_detector.launch" />
 
    <!-- Vision manipulatie -->
    <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" launch-prefix="gnome-terminal --tab -- bash -c '/opt/ros/melodic/env.sh rosrun robotics_pkg transformatie_vision.py; exec bash'" />
