@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 <launch>
 
-   #starten roscore
+   <!-- Start roscore -->
    <node name="roscore" pkg="ros" type="core"  output="screen" />
 
-   #HMI GUI
-   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" />
+   <!-- HMI GUI -->
+   <node name="HMI_2" pkg="robotics_pkg" type="HMI_2.py" launch-prefix="gnome-terminal --tab -- " />
 
-   #vision camera
-    <include file="$(find my_depthai)/launch/nn_detector.launch">
-      <arg name="parent_frame"    value="camera_link" />
-    </include>
-  
-  
-   #vision manipulatie 
-   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" />
-   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" />
+   <!-- Vision camera -->
+   <include file="$(find my_depthai)/launch/nn_detector.launch">
+      <arg name="parent_frame" value="camera_link" />
+   </include>
 
-   #manipulator 
-   <node name="main" pkg="robotics_pkg" type="main.py" />
+   <!-- Vision manipulatie -->
+   <node name="transformatie_vision" pkg="robotics_pkg" type="transformatie_vision.py" launch-prefix="gnome-terminal --tab -- " />
+   <node name="opencv_vision" pkg="robotics_pkg" type="opencv_vision.py" launch-prefix="gnome-terminal --tab -- " />
+
+   <!-- Manipulator -->
+   <node name="main" pkg="robotics_pkg" type="main.py" launch-prefix="gnome-terminal --tab -- " />
+
 </launch>
