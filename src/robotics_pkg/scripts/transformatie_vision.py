@@ -4,7 +4,7 @@ import rospy
 import tf
 from geometry_msgs.msg import PoseStamped
 from depthai_ros_msgs.msg import SpatialDetectionArray
-from my_depthai.srv import lokalisatie, lokalisatieResponse
+from robotics_pkg.srv import lokalisatie, lokalisatieResponse
 
 listener = None
 service = None  # Define a global variable to hold the service object
@@ -26,22 +26,22 @@ def lokalisatie_detectie(req):
         eerste_detectie = data.detections[0]
         eerste_resultaat_id = eerste_detectie.results[0].id
 
-        if eerste_resultaat_id == 0:
-            rospy.loginfo("Resultaat van de herkenning is: Colgate")
-            item = "Colgate_0"
-            naam = "Colgate"
-        elif eerste_resultaat_id == 1:
-            rospy.loginfo("Resultaat van de herkenning is: Elektrisch")
-            item = "Elektrisch_0"
-            naam = "Elektrisch"
+        if eerste_resultaat_id == 1:
+            rospy.loginfo("Resultaat van de herkenning is: dop_10")
+            item = "Dop_10"
+            naam = "Dop_10"
         elif eerste_resultaat_id == 2:
-            rospy.loginfo("Resultaat van de herkenning is: PepaPig")
-            item = "PeppaPig_0"
-            naam = "PeppaPig"
+            rospy.loginfo("Resultaat van de herkenning is: Kleine Schroevendraaier")
+            item = "KleineSchroevendraaier"
+            naam = "KleineSchroevendraaier"
         elif eerste_resultaat_id == 3:
-            rospy.loginfo("Resultaat van de herkenning is: TongBorstel")
-            item = "TongBorstel_0"
-            naam = "TongBorstel"
+            rospy.loginfo("Resultaat van de herkenning is: Platte kop")
+            item = "PlatteKop"
+            naam = "PlatteKop"
+        elif eerste_resultaat_id == 4:
+            rospy.loginfo("Resultaat van de herkenning is: Spanningstester")
+            item = "Spanningstester"
+            naam = "Spanningstester"
         else:
             rospy.logwarn("Onjuiste waarde gelezen: %i", eerste_resultaat_id)
             return lokalisatieResponse(Xw=0, Yw=0, Zw=0, Naam="")

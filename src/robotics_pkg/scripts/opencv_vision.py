@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 '''
 opencv.py
@@ -13,7 +12,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from depthai_ros_msgs.msg import SpatialDetectionArray
-from my_depthai.srv import GetAngle, GetAngleResponse
+from robotics_pkg.srv import GetAngle, GetAngleResponse
 
 class ImageProcessor:
 
