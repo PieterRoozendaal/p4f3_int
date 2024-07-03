@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-
+'''
+transformatie_vision.py
+Purpose: Transformation for the coordinates taken from the camera
+Pieter Roozendaal
+'''
 import rospy
 import tf
 from geometry_msgs.msg import PoseStamped
