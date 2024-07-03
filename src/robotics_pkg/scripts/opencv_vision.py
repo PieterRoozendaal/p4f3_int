@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-opencv.py
+opencv_vision.py
 Purpose: detects the angle from image
 Pieter Roozendaal
 '''
